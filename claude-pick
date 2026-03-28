@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# claude-pick — Interactive model picker for free-claude-code
+# claude-pick — Interactive model picker for liberated-claude-code
 # Usage: claude-pick [extra claude args...]
 
 set -euo pipefail
