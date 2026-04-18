@@ -12,6 +12,7 @@ from .exceptions import (
 from .llamacpp import LlamaCppProvider
 from .lmstudio import LMStudioProvider
 from .nvidia_nim import NvidiaNimProvider
+from .ollama import OllamaCloudProvider, OllamaLocalProvider
 from .open_router import OpenRouterProvider
 
 __all__ = [
@@ -22,6 +23,8 @@ __all__ = [
     "LMStudioProvider",
     "LlamaCppProvider",
     "NvidiaNimProvider",
+    "OllamaCloudProvider",
+    "OllamaLocalProvider",
     "OpenRouterProvider",
     "OverloadedError",
     "ProviderConfig",
