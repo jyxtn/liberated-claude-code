@@ -22,11 +22,14 @@ dependencies = [
     "openai>=2.16.0",
     "loguru>=0.7.0",
     "pydantic-core>=2.41.5",
+    "click>=8.0.0",
+    "tomli>=2.0.0",
 ]
 
 [project.scripts]
 liberated-claude-code = "cli.entrypoints:serve"
 fcc-init = "cli.entrypoints:init"
+claude-with = "claude_with.cli:main"
 
 [project.optional-dependencies]
 voice = [
@@ -42,7 +45,7 @@ voice_local = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["api", "cli", "config", "messaging", "providers"]
+packages = ["api", "cli", "config", "messaging", "providers", "claude_with"]
 
 [tool.uv.sources]
 torch = { index = "pytorch-cu130" }
@@ -86,7 +89,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["api", "cli", "config", "messaging", "providers", "utils"]
+known-first-party = ["api", "cli", "config", "messaging", "providers", "utils", "claude_with"]
 
 [tool.ruff.format]
 quote-style = "double"
