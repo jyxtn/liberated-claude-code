@@ -41,6 +41,19 @@ class Settings(BaseSettings):
     # ==================== Modal Config ====================
     modal_api_key: str = Field(default="", validation_alias="MODAL_API_KEY")
 
+    # ==================== Ollama Cloud Config ====================
+    ollama_api_key: str = Field(default="", validation_alias="OLLAMA_API_KEY")
+    ollama_cloud_base_url: str = Field(
+        default="https://ollama.com/v1",
+        validation_alias="OLLAMA_CLOUD_BASE_URL",
+    )
+
+    # ==================== Ollama Local Config ====================
+    ollama_local_base_url: str = Field(
+        default="http://localhost:11434/v1",
+        validation_alias="OLLAMA_LOCAL_BASE_URL",
+    )
+
     # ==================== LM Studio Config ====================
     lm_studio_base_url: str = Field(
         default="http://localhost:1234/v1",
@@ -167,7 +180,10 @@ class Settings(BaseSettings):
     def validate_model_format(cls, v: str | None) -> str | None:
         if v is None:
             return None
-        valid_providers = ("nvidia_nim", "open_router", "lmstudio", "llamacpp", "modal")
+        valid_providers = (
+            "nvidia_nim", "open_router", "lmstudio", "llamacpp", "modal",
+            "ollama_cloud", "ollama_local",
+        )
         if "/" not in v:
             raise ValueError(
                 f"Model must be prefixed with provider type. "
@@ -178,7 +194,7 @@ class Settings(BaseSettings):
         if provider not in valid_providers:
             raise ValueError(
                 f"Invalid provider: '{provider}'. "
-                f"Supported: 'nvidia_nim', 'open_router', 'lmstudio', 'llamacpp', 'modal'"
+                f"Supported: 'nvidia_nim', 'open_router', 'lmstudio', 'llamacpp', 'modal', 'ollama_cloud', 'ollama_local'"
             )
         return v
 
