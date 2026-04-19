@@ -293,21 +293,25 @@ liberated-claude-code    # starts the server
 
 ## Providers
 
-| Provider       | Cost         | Rate Limit | Best For                             |
-| -------------- | ------------ | ---------- | ------------------------------------ |
-| **NVIDIA NIM** | Free         | 40 req/min | Daily driver, generous free tier     |
-| **OpenRouter** | Free / Paid  | Varies     | Model variety, fallback options      |
-| **LM Studio**  | Free (local) | Unlimited  | Privacy, offline use, no rate limits |
-| **llama.cpp**  | Free (local) | Unlimited  | Lightweight local inference engine   |
+| Provider        | Cost         | Rate Limit | Best For                             |
+| --------------- | ------------ | ---------- | ------------------------------------ |
+| **NVIDIA NIM**  | Free         | 40 req/min | Daily driver, generous free tier     |
+| **Ollama Cloud** | Free (rate limits) | Varies | Cloud models via Anthropic-compatible API |
+| **Ollama Local** | Free (local) | Unlimited | Local ollama serve instances |
+| **OpenRouter**  | Free / Paid  | Varies     | Model variety, fallback options      |
+| **LM Studio**   | Free (local) | Unlimited  | Privacy, offline use, no rate limits |
+| **llama.cpp**   | Free (local) | Unlimited  | Lightweight local inference engine   |
 
 Models use a prefix format: `provider_prefix/model/name`. An invalid prefix causes an error.
 
-| Provider   | `MODEL` prefix    | API Key Variable     | Default Base URL              |
-| ---------- | ----------------- | -------------------- | ----------------------------- |
-| NVIDIA NIM | `nvidia_nim/...`  | `NVIDIA_NIM_API_KEY` | `integrate.api.nvidia.com/v1` |
-| OpenRouter | `open_router/...` | `OPENROUTER_API_KEY` | `openrouter.ai/api/v1`        |
-| LM Studio  | `lmstudio/...`    | (none)               | `localhost:1234/v1`           |
-| llama.cpp  | `llamacpp/...`    | (none)               | `localhost:8080/v1`           |
+| Provider     | `MODEL` prefix    | API Key Variable     | Default Base URL              |
+| ------------ | ----------------- | -------------------- | ----------------------------- |
+| NVIDIA NIM   | `nvidia_nim/...`  | `NVIDIA_NIM_API_KEY` | `integrate.api.nvidia.com/v1` |
+| Ollama Cloud | `ollama_cloud/...`| `OLLAMA_API_KEY`     | `https://ollama.com/v1`       |
+| Ollama Local | `ollama_local/...`| (none)               | `http://localhost:11434/v1`   |
+| OpenRouter   | `open_router/...` | `OPENROUTER_API_KEY` | `openrouter.ai/api/v1`        |
+| LM Studio    | `lmstudio/...`    | (none)               | `localhost:1234/v1`           |
+| llama.cpp    | `llamacpp/...`    | (none)               | `localhost:8080/v1`           |
 
 <details>
 <summary><b>NVIDIA NIM models</b></summary>
