@@ -1,0 +1,51 @@
+# claude-with configuration
+# Location: ~/.config/claude-with/config.toml
+
+# Provider credentials (env var references, NOT actual keys)
+[providers.ollama_cloud]
+api_key_env = "OLLAMA_API_KEY"
+base_url = "https://ollama.com/v1"
+
+[providers.ollama_local]
+base_url = "http://localhost:11434/v1"
+
+[providers.nvidia_nim]
+api_key_env = "NVIDIA_NIM_API_KEY"
+base_url = "https://integrate.api.nvidia.com/v1"
+
+[providers.open_router]
+api_key_env = "OPENROUTER_API_KEY"
+base_url = "https://openrouter.ai/api/v1"
+
+# Default model tiers by provider
+[defaults.ollama_cloud]
+large = "glm5.1"
+medium = "kimi-k2.5"
+small = "step-3.5-flash"
+
+[defaults.ollama_local]
+large = "qwen3-32b"
+medium = "qwen3-14b"
+small = "qwen3-4b"
+
+[defaults.nvidia_nim]
+large = "nvidia_nim/z-ai/glm5"
+medium = "nvidia_nim/meta/llama3-70b"
+small = "nvidia_nim/stepfun-ai/step-3.5-flash"
+
+[defaults.open_router]
+large = "open_router/deepseek/deepseek-r1-0528:free"
+medium = "open_router/openai/gpt-oss-120b:free"
+small = "open_router/stepfun/step-3.5-flash:free"
+
+# Named profiles
+[profiles.oculus]
+provider = "ollama_cloud"
+large = "glm5.1"
+medium = "kimi-k2.5"
+small = "step-3.5-flash"
+
+# Proxy settings
+[proxy]
+port = 8082
+host = "127.0.0.1"
