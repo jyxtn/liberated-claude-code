@@ -222,11 +222,71 @@ cmd_modal() {
     echo ""
 }
 
+# ── Ollama Cloud ──────────────────────────────────────────────────────────────
+
+_vscode_set_ollama() {
+    python3 -c "
+import json, sys
+path = sys.argv[1]
+with open(path) as f:
+    s = json.load(f)
+s['claudeCode.environmentVariables'] = [
+    {'name': 'ANTHROPIC_BASE_URL', 'value': 'http://localhost:$PROXY_PORT'},
+    {'name': 'ANTHROPIC_API_KEY', 'value': 'freecc'},
+]
+with open(path, 'w') as f:
+    json.dump(s, f, indent=4)
+print('  ✓ VS Code settings updated — reload the Claude extension to take effect')
+" "$VSCODE_SETTINGS"
+}
+
+_verify_ollama() {
+    echo ""
+    echo "  Verifying Ollama Cloud routing..."
+    local response
+    response=$(curl -sf "$PROXY_URL/health") || { echo "  ✗ Proxy not responding"; exit 1; }
+    echo "  ✓ Proxy health: $response"
+
+    if [[ -z "$OLLAMA_API_KEY" ]]; then
+        echo "  ✗ OLLAMA_API_KEY not set"
+        echo "  Set it in your shell: export OLLAMA_API_KEY=\"your-key\""
+        exit 1
+    fi
+    echo "  ✓ Auth: OLLAMA_API_KEY set"
+
+    echo ""
+    echo "  ⚡ Active provider: Ollama Cloud"
+    echo "  Models: large→glm5.1, medium→kimi-k2.5, small→step-3.5-flash"
+}
+
+cmd_ollama() {
+    echo ""
+    echo "━━━ Switching to Ollama Cloud ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    if [[ -z "$OLLAMA_API_KEY" ]]; then
+        echo "  ✗ OLLAMA_API_KEY not set"
+        echo "  Get a key at: https://ollama.com/settings/keys"
+        echo "  Set it: export OLLAMA_API_KEY=\"your-key\""
+        exit 1
+    fi
+    _start_proxy
+    echo "  Logging out of Anthropic OAuth..."
+    claude auth logout 2>/dev/null && echo "  ✓ Logged out" || echo "  ✓ Already logged out"
+    _vscode_set_ollama
+    _verify_ollama
+    echo ""
+    echo "  Launch CLI: claude-with ollama --profile oculus"
+    echo "  Or: ANTHROPIC_BASE_URL=$PROXY_URL ANTHROPIC_API_KEY=freecc claude"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+}
+
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 case "${1:-}" in
     nim) cmd_nim ;;
     modal) cmd_modal ;;
+    ollama) cmd_ollama ;;
     anthropic) cmd_anthropic ;;
     status)
         echo ""
@@ -248,7 +308,7 @@ except: pass
         echo ""
         ;;
     *)
-        echo "Usage: claude-switch [nim|modal|anthropic|status]"
+        echo "Usage: claude-switch [nim|modal|ollama|anthropic|status]"
         exit 1
         ;;
 esac
