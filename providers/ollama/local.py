@@ -1,19 +1,34 @@
-"""Ollama Local provider - placeholder for future implementation."""
+"""Ollama Local provider - pass-through to local ollama instance.
 
-from providers.base import BaseProvider, ProviderConfig
+Connects to ollama running locally (default: localhost:11434).
+Uses Anthropic-compatible /v1/messages endpoint.
+No authentication required.
+"""
+
+from providers.ollama.cloud import OllamaCloudProvider
+from providers.base import ProviderConfig
 
 
-class OllamaLocalProvider(BaseProvider):
-    """Placeholder for local ollama provider - not yet implemented."""
+OLLAMA_LOCAL_BASE_URL = "http://localhost:11434/v1"
 
-    def __init__(self, config: ProviderConfig):
-        super().__init__(config)
-        raise NotImplementedError("OllamaLocalProvider is not yet implemented")
 
-    async def cleanup(self) -> None:
-        """Release resources."""
-        pass
+class OllamaLocalProvider(OllamaCloudProvider):
+    """Pass-through provider for local Ollama instance.
 
-    async def stream_response(self, request, input_tokens: int = 0, *, request_id: str | None = None):
-        """Stream response - not implemented."""
-        raise NotImplementedError("OllamaLocalProvider is not yet implemented")
+    Inherits from OllamaCloudProvider - same Anthropic pass-through logic.
+    Only difference: default base URL and no auth requirement.
+    """
+
+    def __init__(
+        self,
+        config: ProviderConfig,
+        *,
+        model_map: dict[str, str] | None = None,
+    ):
+        # Override base_url if not provided
+        if not config.base_url:
+            config = config.model_copy(update={"base_url": OLLAMA_LOCAL_BASE_URL})
+        # Local ollama doesn't require auth, use dummy key if not provided
+        if config.api_key is None:
+            config = config.model_copy(update={"api_key": "ollama"})
+        super().__init__(config, model_map=model_map)

@@ -1,7 +1,7 @@
 """Tests for ollama cloud provider."""
 
 import pytest
-from providers.ollama import OllamaCloudProvider
+from providers.ollama import OllamaCloudProvider, OllamaLocalProvider
 from providers.base import ProviderConfig
 
 
@@ -53,3 +53,24 @@ def test_ollama_cloud_provider_passes_through_anthropic_format():
     # Request should be in Anthropic format, not transformed to OpenAI format
     assert request_body["messages"] == [{"role": "user", "content": "Hello"}]
     assert request_body["max_tokens"] == 100
+
+
+def test_ollama_local_provider_init():
+    """Local provider initializes with localhost URL."""
+    config = ProviderConfig(
+        api_key="not-needed",
+        base_url="http://localhost:11434/v1",
+    )
+    provider = OllamaLocalProvider(config)
+    assert provider._base_url == "http://localhost:11434/v1"
+
+
+def test_ollama_local_provider_no_auth():
+    """Local provider does not require API key."""
+    config = ProviderConfig(
+        api_key="",  # Empty key is fine for local
+        base_url="http://localhost:11434/v1",
+    )
+    provider = OllamaLocalProvider(config)
+    # Should not raise any errors
+    assert provider._api_key == ""
