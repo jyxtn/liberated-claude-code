@@ -2,6 +2,12 @@
 
 # 🤖 Liberated Claude Code
 
+## Why this fork? 
+The original was focused on NVIDIA NIM model hosting at build.nvidia.com --thanks, NVIDIA for the generous free tokens! My needs outgrew what I was able to do with the free offerings, but I found good utility in the framework that was already built here, so I made some adaptations to allow me to use other providers in a similar way. Right now my current favorite is Ollama:cloud, they offer a lot of usage for their paid offering. 
+
+## Why rename it?
+Because it's not free as in free beer, nor is it free as in freedom, but rather **liberated** from the requirement of using Anthropic's (which I still maintain a subscription) solutions--the implication being of optionality. In fact, my continued maintainance of an Anthropic subscription is a main driver of why I forked and extended this: so that I can use both, even in parallel at the same time with zero friction.
+
 ### Use Claude Code CLI & VSCode for free. No Anthropic API key required.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
