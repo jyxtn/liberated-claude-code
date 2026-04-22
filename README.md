@@ -299,8 +299,10 @@ liberated-claude-code    # starts the server
 | **Ollama Cloud** | Free (rate limits) | Varies | Cloud models via Anthropic-compatible API |
 | **Ollama Local** | Free (local) | Unlimited | Local ollama serve instances |
 | **OpenRouter**  | Free / Paid  | Varies     | Model variety, fallback options      |
+| **OpenAI-Compat** | Varies | Varies | Any OpenAI-compatible endpoint (vLLM, LiteLLM, TGI, etc.) |
 | **LM Studio**   | Free (local) | Unlimited  | Privacy, offline use, no rate limits |
 | **llama.cpp**   | Free (local) | Unlimited  | Lightweight local inference engine   |
+| **Anthropic API** | Pay-per-token | Varies | Anthropic API through proxy (tier routing) |
 
 Models use a prefix format: `provider_prefix/model/name`. An invalid prefix causes an error.
 
@@ -310,6 +312,7 @@ Models use a prefix format: `provider_prefix/model/name`. An invalid prefix caus
 | Ollama Cloud | `ollama_cloud/...`| `OLLAMA_API_KEY`     | `https://ollama.com/v1`       |
 | Ollama Local | `ollama_local/...`| (none)               | `http://localhost:11434/v1`   |
 | OpenRouter   | `open_router/...` | `OPENROUTER_API_KEY` | `openrouter.ai/api/v1`        |
+| OpenAI-Compat | `openai_compatible/...` | `OPENAI_COMPAT_API_KEY` + `OPENAI_COMPAT_BASE_URL` | User-configured |
 | LM Studio    | `lmstudio/...`    | (none)               | `localhost:1234/v1`           |
 | llama.cpp    | `llamacpp/...`    | (none)               | `localhost:8080/v1`           |
 
@@ -511,6 +514,13 @@ These are enabled by default and intercept trivial Claude Code requests locally 
 </details>
 
 See [`.env.example`](.env.example) for all supported parameters.
+
+---
+
+## Documentation
+
+- [Getting Started Guide](docs/getting-started.md) — Setup, configuration, and usage
+- [Translation Layer](docs/translation-layer.md) — How the proxy translates between Anthropic and OpenAI formats
 
 ---
 
