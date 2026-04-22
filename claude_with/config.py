@@ -136,3 +136,12 @@ class Config:
     def get_default_tier(self, provider: str) -> ModelTier:
         """Get default model tier for a provider."""
         return self.defaults.get(provider, ModelTier())
+
+    def get_project_env(self) -> dict[str, str]:
+        """Get project-local [env] overrides from .claude-with.toml."""
+        local_path = Path.cwd() / ".claude-with.toml"
+        if not local_path.exists():
+            return {}
+        with open(local_path, "rb") as f:
+            data = tomli.load(f)
+        return dict(data.get("env", {}))

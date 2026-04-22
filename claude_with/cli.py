@@ -71,8 +71,15 @@ def _launch(provider_name, provider_enum, large, medium, small, profile_name, co
         if local_profile:
             profile_name = local_profile.name
 
+    # Load project-local [env] overrides
+    project_env = config.get_project_env()
+
     # Build environment
     env = os.environ.copy()
+
+    # Apply project-local env overrides (lowest priority among explicit sources)
+    for key, value in project_env.items():
+        env.setdefault(key, value)
 
     # Set proxy URL if needed
     if provider_config.requires_proxy:
@@ -90,14 +97,19 @@ def _launch(provider_name, provider_enum, large, medium, small, profile_name, co
     # Set model tier env vars
     models = _resolve_models(config, provider_config, profile_name, large, medium, small)
 
-    # Set provider-specific env vars
+    # Set provider-specific env vars (from keychain, .env file, or project-local [env])
     if provider_config.env_var:
         api_key = get_api_key(provider_config.env_var)
         if api_key:
             env[provider_config.env_var] = api_key
 
     if provider_enum == Provider.OPENAI_COMPAT:
-        base_url = os.environ.get("OPENAI_COMPAT_BASE_URL") or get_api_key("OPENAI_COMPAT_BASE_URL") or provider_config.base_url
+        base_url = (
+            os.environ.get("OPENAI_COMPAT_BASE_URL")
+            or project_env.get("OPENAI_COMPAT_BASE_URL")
+            or get_api_key("OPENAI_COMPAT_BASE_URL")
+            or provider_config.base_url
+        )
         if base_url:
             env["OPENAI_COMPAT_BASE_URL"] = base_url
 
@@ -112,8 +124,13 @@ def _launch(provider_name, provider_enum, large, medium, small, profile_name, co
     # Resolve command
     cmd = command or "claude"
 
-    # Run command
-    cmd_list = [cmd, *args]
+    # Proxy-based providers need --bare so Claude Code uses ANTHROPIC_API_KEY
+    # instead of OAuth (which would bypass the proxy)
+    cmd_list = [cmd]
+    if provider_config.requires_proxy and cmd == "claude":
+        cmd_list.append("--bare")
+    cmd_list.extend(args)
+
     print(f"⚡ Provider: {provider_name}")
     if models.get_large():
         print(f"  large: {models.get_large()}")
