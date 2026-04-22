@@ -12,7 +12,9 @@ from providers.llamacpp import LlamaCppProvider
 from providers.lmstudio import LMStudioProvider
 from providers.modal import ModalProvider
 from providers.nvidia_nim import NVIDIA_NIM_BASE_URL, NvidiaNimProvider
+from providers.ollama import OllamaCloudProvider, OllamaLocalProvider
 from providers.open_router import OPENROUTER_BASE_URL, OpenRouterProvider
+from providers.openai_compat_generic import OpenAICompatProvider
 
 # Provider registry: keyed by provider type string, lazily populated
 _providers: dict[str, BaseProvider] = {}
@@ -100,13 +102,59 @@ def _create_provider_for_type(provider_type: str, settings: Settings) -> BasePro
             http_connect_timeout=settings.http_connect_timeout,
         )
         return ModalProvider(config)
+    if provider_type == "ollama_cloud":
+        if not settings.ollama_api_key or not settings.ollama_api_key.strip():
+            raise AuthenticationError(
+                "OLLAMA_API_KEY is not set. Add it to your .env file. "
+                "Get a key at https://ollama.com/settings/keys"
+            )
+        config = ProviderConfig(
+            api_key=settings.ollama_api_key,
+            base_url=settings.ollama_cloud_base_url,
+            rate_limit=settings.provider_rate_limit,
+            rate_window=settings.provider_rate_window,
+            max_concurrency=settings.provider_max_concurrency,
+            http_read_timeout=settings.http_read_timeout,
+            http_write_timeout=settings.http_write_timeout,
+            http_connect_timeout=settings.http_connect_timeout,
+        )
+        return OllamaCloudProvider(config)
+    if provider_type == "ollama_local":
+        config = ProviderConfig(
+            api_key="ollama",  # Local doesn't need auth
+            base_url=settings.ollama_local_base_url,
+            rate_limit=settings.provider_rate_limit,
+            rate_window=settings.provider_rate_window,
+            max_concurrency=settings.provider_max_concurrency,
+            http_read_timeout=settings.http_read_timeout,
+            http_write_timeout=settings.http_write_timeout,
+            http_connect_timeout=settings.http_connect_timeout,
+        )
+        return OllamaLocalProvider(config)
+    if provider_type == "openai_compatible":
+        if not settings.openai_compat_api_key or not settings.openai_compat_api_key.strip():
+            raise AuthenticationError(
+                "OPENAI_COMPAT_API_KEY is not set. Add it to your .env file. "
+                "Set OPENAI_COMPAT_BASE_URL to your endpoint URL."
+            )
+        config = ProviderConfig(
+            api_key=settings.openai_compat_api_key,
+            base_url=settings.openai_compat_base_url,
+            rate_limit=settings.provider_rate_limit,
+            rate_window=settings.provider_rate_window,
+            max_concurrency=settings.provider_max_concurrency,
+            http_read_timeout=settings.http_read_timeout,
+            http_write_timeout=settings.http_write_timeout,
+            http_connect_timeout=settings.http_connect_timeout,
+        )
+        return OpenAICompatProvider(config)
     logger.error(
-        "Unknown provider_type: '{}'. Supported: 'nvidia_nim', 'open_router', 'lmstudio', 'llamacpp', 'modal'",
+        "Unknown provider_type: '{}'. Supported: 'nvidia_nim', 'open_router', 'lmstudio', 'llamacpp', 'modal', 'ollama_cloud', 'ollama_local', 'openai_compatible'",
         provider_type,
     )
     raise ValueError(
         f"Unknown provider_type: '{provider_type}'. "
-        f"Supported: 'nvidia_nim', 'open_router', 'lmstudio', 'llamacpp', 'modal'"
+        f"Supported: 'nvidia_nim', 'open_router', 'lmstudio', 'llamacpp', 'modal', 'ollama_cloud', 'ollama_local', 'openai_compatible'"
     )
 
 

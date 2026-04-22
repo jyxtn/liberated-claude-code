@@ -12,7 +12,9 @@ from .exceptions import (
 from .llamacpp import LlamaCppProvider
 from .lmstudio import LMStudioProvider
 from .nvidia_nim import NvidiaNimProvider
+from .ollama import OllamaCloudProvider, OllamaLocalProvider
 from .open_router import OpenRouterProvider
+from .openai_compat_generic import OpenAICompatProvider
 
 __all__ = [
     "APIError",
@@ -22,6 +24,9 @@ __all__ = [
     "LMStudioProvider",
     "LlamaCppProvider",
     "NvidiaNimProvider",
+    "OllamaCloudProvider",
+    "OllamaLocalProvider",
+    "OpenAICompatProvider",
     "OpenRouterProvider",
     "OverloadedError",
     "ProviderConfig",

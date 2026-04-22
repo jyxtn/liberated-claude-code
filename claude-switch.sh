@@ -222,11 +222,190 @@ cmd_modal() {
     echo ""
 }
 
+# ── Ollama Cloud ──────────────────────────────────────────────────────────────
+
+_vscode_set_ollama() {
+    python3 -c "
+import json, sys
+path = sys.argv[1]
+with open(path) as f:
+    s = json.load(f)
+s['claudeCode.environmentVariables'] = [
+    {'name': 'ANTHROPIC_BASE_URL', 'value': 'http://localhost:$PROXY_PORT'},
+    {'name': 'ANTHROPIC_API_KEY', 'value': 'freecc'},
+]
+with open(path, 'w') as f:
+    json.dump(s, f, indent=4)
+print('  ✓ VS Code settings updated — reload the Claude extension to take effect')
+" "$VSCODE_SETTINGS"
+}
+
+_verify_ollama() {
+    echo ""
+    echo "  Verifying Ollama Cloud routing..."
+    local response
+    response=$(curl -sf "$PROXY_URL/health") || { echo "  ✗ Proxy not responding"; exit 1; }
+    echo "  ✓ Proxy health: $response"
+
+    if [[ -z "$OLLAMA_API_KEY" ]]; then
+        echo "  ✗ OLLAMA_API_KEY not set"
+        echo "  Set it in your shell: export OLLAMA_API_KEY=\"your-key\""
+        exit 1
+    fi
+    echo "  ✓ Auth: OLLAMA_API_KEY set"
+
+    echo ""
+    echo "  ⚡ Active provider: Ollama Cloud"
+    echo "  Models: large→glm5.1, medium→kimi-k2.5, small→step-3.5-flash"
+}
+
+cmd_ollama() {
+    echo ""
+    echo "━━━ Switching to Ollama Cloud ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    if [[ -z "$OLLAMA_API_KEY" ]]; then
+        echo "  ✗ OLLAMA_API_KEY not set"
+        echo "  Get a key at: https://ollama.com/settings/keys"
+        echo "  Set it: export OLLAMA_API_KEY=\"your-key\""
+        exit 1
+    fi
+    _start_proxy
+    echo "  Logging out of Anthropic OAuth..."
+    claude auth logout 2>/dev/null && echo "  ✓ Logged out" || echo "  ✓ Already logged out"
+    _vscode_set_ollama
+    _verify_ollama
+    echo ""
+    echo "  Launch CLI: claude-with ollama --profile oculus"
+    echo "  Or: ANTHROPIC_BASE_URL=$PROXY_URL ANTHROPIC_API_KEY=freecc claude"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+}
+
+# ── OpenAI-Compatible ─────────────────────────────────────────────────────────
+
+_vscode_set_openai_compat() {
+    python3 -c "
+import json, sys
+path = sys.argv[1]
+with open(path) as f:
+    s = json.load(f)
+s['claudeCode.environmentVariables'] = [
+    {'name': 'ANTHROPIC_BASE_URL', 'value': 'http://localhost:$PROXY_PORT'},
+    {'name': 'ANTHROPIC_API_KEY',  'value': 'freecc'},
+]
+with open(path, 'w') as f:
+    json.dump(s, f, indent=4)
+print('  ✓ VS Code settings updated — reload the Claude extension to take effect')
+" "$VSCODE_SETTINGS"
+}
+
+_verify_openai_compat() {
+    echo ""
+    echo "  Verifying OpenAI-compatible endpoint routing..."
+    local response
+    response=$(curl -sf "$PROXY_URL/health") || { echo "  ✗ Proxy not responding"; exit 1; }
+    echo "  ✓ Proxy health: $response"
+
+    if [[ -z "$OPENAI_COMPAT_API_KEY" ]]; then
+        echo "  ⚠ OPENAI_COMPAT_API_KEY not set (some endpoints don't require auth)"
+    else
+        echo "  ✓ Auth: OPENAI_COMPAT_API_KEY set"
+    fi
+
+    if [[ -z "$OPENAI_COMPAT_BASE_URL" ]]; then
+        echo "  ✗ OPENAI_COMPAT_BASE_URL not set"
+        echo "  Set it: export OPENAI_COMPAT_BASE_URL=\"https://your-endpoint/v1\""
+        exit 1
+    fi
+    echo "  ✓ Endpoint: $OPENAI_COMPAT_BASE_URL"
+
+    echo ""
+    echo "  ⚡ Active provider: OpenAI-Compatible"
+    echo "  Endpoint: $OPENAI_COMPAT_BASE_URL"
+}
+
+cmd_openai_compat() {
+    echo ""
+    echo "━━━ Switching to OpenAI-Compatible Endpoint ━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    _start_proxy
+    echo "  Logging out of Anthropic OAuth..."
+    claude auth logout 2>/dev/null && echo "  ✓ Logged out" || echo "  ✓ Already logged out"
+    _vscode_set_openai_compat
+    _verify_openai_compat
+    echo ""
+    echo "  Launch CLI: claude-with openai-compat --large <model>"
+    echo "  Or: ANTHROPIC_BASE_URL=$PROXY_URL ANTHROPIC_API_KEY=freecc claude"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+}
+
+# ── Anthropic API ─────────────────────────────────────────────────────────────
+
+_vscode_set_anthropic_api() {
+    python3 -c "
+import json, sys
+path = sys.argv[1]
+with open(path) as f:
+    s = json.load(f)
+s['claudeCode.environmentVariables'] = [
+    {'name': 'ANTHROPIC_BASE_URL', 'value': 'http://localhost:$PROXY_PORT'},
+    {'name': 'ANTHROPIC_API_KEY',  'value': 'freecc'},
+]
+with open(path, 'w') as f:
+    json.dump(s, f, indent=4)
+print('  ✓ VS Code settings updated — reload the Claude extension to take effect')
+" "$VSCODE_SETTINGS"
+}
+
+_verify_anthropic_api() {
+    echo ""
+    echo "  Verifying Anthropic API routing..."
+    local response
+    response=$(curl -sf "$PROXY_URL/health") || { echo "  ✗ Proxy not responding"; exit 1; }
+    echo "  ✓ Proxy health: $response"
+
+    if [[ -z "$ANTHROPIC_API_KEY" ]]; then
+        echo "  ✗ ANTHROPIC_API_KEY not set"
+        echo "  Set it: export ANTHROPIC_API_KEY=\"your-key\""
+        exit 1
+    fi
+    echo "  ✓ Auth: ANTHROPIC_API_KEY set"
+
+    echo ""
+    echo "  ⚡ Active provider: Anthropic API (through proxy)"
+    echo "  Models: tier routing through proxy"
+}
+
+cmd_anthropic_api() {
+    echo ""
+    echo "━━━ Switching to Anthropic API (proxy) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    if [[ -z "$ANTHROPIC_API_KEY" ]]; then
+        echo "  ✗ ANTHROPIC_API_KEY not set"
+        echo "  Set it: export ANTHROPIC_API_KEY=\"your-key\""
+        exit 1
+    fi
+    _start_proxy
+    echo "  Logging out of Anthropic OAuth..."
+    claude auth logout 2>/dev/null && echo "  ✓ Logged out" || echo "  ✓ Already logged out"
+    _vscode_set_anthropic_api
+    _verify_anthropic_api
+    echo ""
+    echo "  Launch CLI: claude-with anthropic-api --large claude-opus-4-7"
+    echo "  Or: ANTHROPIC_BASE_URL=$PROXY_URL ANTHROPIC_API_KEY=freecc claude"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+}
+
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 case "${1:-}" in
     nim) cmd_nim ;;
     modal) cmd_modal ;;
+    ollama) cmd_ollama ;;
+    openai-compat) cmd_openai_compat ;;
+    anthropic-api) cmd_anthropic_api ;;
     anthropic) cmd_anthropic ;;
     status)
         echo ""
@@ -248,7 +427,7 @@ except: pass
         echo ""
         ;;
     *)
-        echo "Usage: claude-switch [nim|modal|anthropic|status]"
+        echo "Usage: claude-switch [nim|modal|ollama|openai-compat|anthropic-api|anthropic|status]"
         exit 1
         ;;
 esac
