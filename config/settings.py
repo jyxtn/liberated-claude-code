@@ -54,6 +54,13 @@ class Settings(BaseSettings):
         validation_alias="OLLAMA_LOCAL_BASE_URL",
     )
 
+    # ==================== OpenAI-Compatible Config ====================
+    openai_compat_api_key: str = Field(default="", validation_alias="OPENAI_COMPAT_API_KEY")
+    openai_compat_base_url: str = Field(
+        default="https://api.openai.com/v1",
+        validation_alias="OPENAI_COMPAT_BASE_URL",
+    )
+
     # ==================== LM Studio Config ====================
     lm_studio_base_url: str = Field(
         default="http://localhost:1234/v1",
@@ -182,7 +189,7 @@ class Settings(BaseSettings):
             return None
         valid_providers = (
             "nvidia_nim", "open_router", "lmstudio", "llamacpp", "modal",
-            "ollama_cloud", "ollama_local",
+            "ollama_cloud", "ollama_local", "openai_compatible",
         )
         if "/" not in v:
             raise ValueError(
@@ -194,7 +201,7 @@ class Settings(BaseSettings):
         if provider not in valid_providers:
             raise ValueError(
                 f"Invalid provider: '{provider}'. "
-                f"Supported: 'nvidia_nim', 'open_router', 'lmstudio', 'llamacpp', 'modal', 'ollama_cloud', 'ollama_local'"
+                f"Supported: 'nvidia_nim', 'open_router', 'lmstudio', 'llamacpp', 'modal', 'ollama_cloud', 'ollama_local', 'openai_compatible'"
             )
         return v
 
