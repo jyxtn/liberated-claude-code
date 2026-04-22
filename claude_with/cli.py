@@ -65,6 +65,12 @@ def _launch(provider_name, provider_enum, large, medium, small, profile_name, co
     config = Config.load()
     provider_config = ProviderConfig.get(provider_enum)
 
+    # Auto-resolve profile from local .claude-with.toml if no --profile given
+    if not profile_name:
+        local_profile = config.get_profile()
+        if local_profile:
+            profile_name = local_profile.name
+
     # Build environment
     env = os.environ.copy()
 
@@ -84,9 +90,14 @@ def _launch(provider_name, provider_enum, large, medium, small, profile_name, co
     # Set model tier env vars
     models = _resolve_models(config, provider_config, profile_name, large, medium, small)
 
-    # Set provider-specific base URL override for openai-compat
+    # Set provider-specific env vars
+    if provider_config.env_var:
+        api_key = get_api_key(provider_config.env_var)
+        if api_key:
+            env[provider_config.env_var] = api_key
+
     if provider_enum == Provider.OPENAI_COMPAT:
-        base_url = os.environ.get("OPENAI_COMPAT_BASE_URL", provider_config.base_url)
+        base_url = os.environ.get("OPENAI_COMPAT_BASE_URL") or get_api_key("OPENAI_COMPAT_BASE_URL") or provider_config.base_url
         if base_url:
             env["OPENAI_COMPAT_BASE_URL"] = base_url
 
