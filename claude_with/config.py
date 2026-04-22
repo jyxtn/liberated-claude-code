@@ -12,6 +12,7 @@ import tomli
 @dataclass
 class ModelTier:
     """Model configuration for a single tier."""
+
     large: str | None = None
     medium: str | None = None
     small: str | None = None
@@ -34,6 +35,7 @@ class ModelTier:
 @dataclass
 class Profile:
     """A named configuration profile."""
+
     name: str
     provider: str
     models: ModelTier = field(default_factory=ModelTier)
@@ -42,11 +44,13 @@ class Profile:
 @dataclass
 class Config:
     """Complete configuration from all sources."""
+
     providers: dict[str, dict[str, Any]] = field(default_factory=dict)
     defaults: dict[str, ModelTier] = field(default_factory=dict)
     profiles: dict[str, Profile] = field(default_factory=dict)
     proxy_port: int = 8082
     proxy_host: str = "127.0.0.1"
+    proxy_project_path: str | None = None
 
     @classmethod
     def load(cls) -> Config:
@@ -98,6 +102,8 @@ class Config:
         if "proxy" in data:
             self.proxy_port = data["proxy"].get("port", self.proxy_port)
             self.proxy_host = data["proxy"].get("host", self.proxy_host)
+            if "project_path" in data["proxy"]:
+                self.proxy_project_path = data["proxy"]["project_path"]
 
     def _parse_model_tier(self, data: dict[str, Any]) -> ModelTier:
         """Parse model tier configuration."""

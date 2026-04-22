@@ -56,7 +56,9 @@ class Settings(BaseSettings):
     )
 
     # ==================== OpenAI-Compatible Config ====================
-    openai_compat_api_key: str = Field(default="", validation_alias="OPENAI_COMPAT_API_KEY")
+    openai_compat_api_key: str = Field(
+        default="", validation_alias="OPENAI_COMPAT_API_KEY"
+    )
     openai_compat_base_url: str = Field(
         default="https://api.openai.com/v1",
         validation_alias="OPENAI_COMPAT_BASE_URL",
@@ -189,8 +191,14 @@ class Settings(BaseSettings):
         if v is None:
             return None
         valid_providers = (
-            "nvidia_nim", "open_router", "lmstudio", "llamacpp", "modal",
-            "ollama_cloud", "ollama_local", "openai_compatible",
+            "nvidia_nim",
+            "open_router",
+            "lmstudio",
+            "llamacpp",
+            "modal",
+            "ollama_cloud",
+            "ollama_local",
+            "openai_compatible",
         )
         if "/" not in v:
             raise ValueError(
@@ -239,9 +247,15 @@ class Settings(BaseSettings):
     def resolve_model(self, claude_model_name: str) -> str:
         """Resolve a Claude model name to the configured provider/model string.
 
-        Classifies the incoming Claude model (opus/sonnet/haiku) and
-        returns the model-specific override if configured, otherwise the fallback MODEL.
+        If the incoming name already contains a provider prefix (e.g.
+        "openai_compatible/gemma4-26B"), return it as-is so the router can
+        dispatch it directly without re-mapping through MODEL_* vars.
+
+        Otherwise, classifies by opus/sonnet/haiku keyword and returns the
+        model-specific override if configured, falling back to MODEL.
         """
+        if "/" in claude_model_name:
+            return claude_model_name
         name_lower = claude_model_name.lower()
         if "opus" in name_lower and self.model_opus is not None:
             return self.model_opus
