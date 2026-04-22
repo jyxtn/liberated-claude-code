@@ -12,6 +12,17 @@ from .keys import get_api_key
 from .providers import Provider, ProviderConfig
 
 
+PROVIDERS = {
+    "ollama": Provider.OLLAMA_CLOUD,
+    "ollama-local": Provider.OLLAMA_LOCAL,
+    "nvidia": Provider.NVIDIA_NIM,
+    "openrouter": Provider.OPENROUTER,
+    "openai-compat": Provider.OPENAI_COMPAT,
+    "anthropic": Provider.ANTHROPIC,
+    "anthropic-api": Provider.ANTHROPIC_API,
+}
+
+
 @click.group()
 @click.version_option()
 def main():
@@ -19,40 +30,39 @@ def main():
 
     Launch Claude Code with different providers and model configurations.
     Each invocation sets environment variables for that session only.
-    """
-    pass
 
-
-@main.command()
-@click.argument("provider", type=click.Choice(["ollama", "ollama-local", "nvidia", "openrouter", "openai-compat", "anthropic", "anthropic-api"]))
-@click.option("--large", "--opus", "large", help="Large/Opus tier model")
-@click.option("--medium", "--sonnet", "medium", help="Medium/Sonnet tier model")
-@click.option("--small", "--haiku", "small", help="Small/Haiku tier model")
-@click.option("--profile", "-p", "profile_name", help="Named profile from config")
-@click.option("--command", "-c", "command", help="Command to run (default: claude)")
-@click.argument("args", nargs=-1)
-def run(provider: str, large: str | None, medium: str | None, small: str | None,
-        profile_name: str | None, command: str | None, args: tuple[str, ...]):
-    """Launch Claude Code with the specified provider and models.
-
+    \b
     Examples:
         claude-with ollama --large glm5 --medium kimi-k2.5 --small step-3.5-flash
         claude-with ollama --profile oculus
         claude-with ollama --profile oculus -- code .
+        claude-with anthropic-api --large claude-opus-4-7
     """
+    pass
+
+
+def _create_provider_command(name, provider_enum):
+    """Create a Click command for a provider."""
+    @click.command(name=name)
+    @click.option("--large", "--opus", "large", help="Large/Opus tier model")
+    @click.option("--medium", "--sonnet", "medium", help="Medium/Sonnet tier model")
+    @click.option("--small", "--haiku", "small", help="Small/Haiku tier model")
+    @click.option("--profile", "-p", "profile_name", help="Named profile from config")
+    @click.option("--command", "-c", "command", help="Command to run (default: claude)")
+    @click.argument("args", nargs=-1)
+    def provider_cmd(large, medium, small, profile_name, command, args):
+        _launch(name, provider_enum, large, medium, small, profile_name, command, args)
+    return provider_cmd
+
+
+# Register each provider as a subcommand
+for _name, _enum in PROVIDERS.items():
+    main.add_command(_create_provider_command(_name, _enum))
+
+
+def _launch(provider_name, provider_enum, large, medium, small, profile_name, command, args):
+    """Launch Claude Code with the specified provider and models."""
     config = Config.load()
-
-    # Get provider config
-    provider_enum = {
-        "ollama": Provider.OLLAMA_CLOUD,
-        "ollama-local": Provider.OLLAMA_LOCAL,
-        "nvidia": Provider.NVIDIA_NIM,
-        "openrouter": Provider.OPENROUTER,
-        "openai-compat": Provider.OPENAI_COMPAT,
-        "anthropic": Provider.ANTHROPIC,
-        "anthropic-api": Provider.ANTHROPIC_API,
-    }[provider]
-
     provider_config = ProviderConfig.get(provider_enum)
 
     # Build environment
@@ -93,7 +103,7 @@ def run(provider: str, large: str | None, medium: str | None, small: str | None,
 
     # Run command
     cmd_list = [cmd, *args]
-    print(f"⚡ Provider: {provider}")
+    print(f"⚡ Provider: {provider_name}")
     if models.get_large():
         print(f"  large: {models.get_large()}")
     if models.get_medium():

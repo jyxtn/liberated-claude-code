@@ -69,6 +69,12 @@ test-cov:
 test-modal:
     uv run pytest tests/providers/test_modal.py -v
 
+# ── Global Install ───────────────────────────────────────────────────────────────
+
+# Install claude-with globally (available from any directory)
+install:
+    uv tool install . --force
+
 # ── Development ──────────────────────────────────────────────────────────────────
 
 # Format code with ruff
