@@ -113,6 +113,11 @@ async def count_tokens(request_data: TokenCountRequest, _auth=Depends(require_ap
             ) from e
 
 
+@router.head("/")
+async def root_head():
+    """Health probe — no auth required."""
+
+
 @router.get("/")
 async def root(
     settings: Settings = Depends(get_settings), _auth=Depends(require_api_key)
@@ -125,7 +130,7 @@ async def root(
     }
 
 
-@router.get("/health")
+@router.api_route("/health", methods=["GET", "HEAD"])
 async def health():
     """Health check endpoint."""
     return {"status": "healthy"}
