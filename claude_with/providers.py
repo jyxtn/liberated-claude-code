@@ -11,7 +11,9 @@ class Provider(StrEnum):
     OLLAMA_LOCAL = "ollama-local"
     NVIDIA_NIM = "nvidia"
     OPENROUTER = "openrouter"
+    OPENAI_COMPAT = "openai-compat"
     ANTHROPIC = "anthropic"
+    ANTHROPIC_API = "anthropic-api"
 
 
 @dataclass
@@ -56,6 +58,18 @@ class ProviderConfig:
                 base_url=None,  # Native Anthropic, no proxy
                 requires_proxy=False,
             ),
+            Provider.OPENAI_COMPAT: cls(
+                name="openai_compatible",
+                env_var="OPENAI_COMPAT_API_KEY",
+                base_url="https://api.openai.com/v1",
+                requires_proxy=True,
+            ),
+            Provider.ANTHROPIC_API: cls(
+                name="anthropic",
+                env_var="ANTHROPIC_API_KEY",
+                base_url=None,
+                requires_proxy=True,
+            ),
         }
         return configs[provider]
 
@@ -68,4 +82,5 @@ PROVIDER_PREFIXES = {
     "open_router": "open_router",
     "lmstudio": "lmstudio",
     "llamacpp": "llamacpp",
+    "openai_compatible": "openai_compatible",
 }

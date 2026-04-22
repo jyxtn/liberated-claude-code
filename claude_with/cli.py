@@ -24,7 +24,7 @@ def main():
 
 
 @main.command()
-@click.argument("provider", type=click.Choice(["ollama", "ollama-local", "nvidia", "openrouter", "anthropic"]))
+@click.argument("provider", type=click.Choice(["ollama", "ollama-local", "nvidia", "openrouter", "openai-compat", "anthropic", "anthropic-api"]))
 @click.option("--large", "--opus", "large", help="Large/Opus tier model")
 @click.option("--medium", "--sonnet", "medium", help="Medium/Sonnet tier model")
 @click.option("--small", "--haiku", "small", help="Small/Haiku tier model")
@@ -48,7 +48,9 @@ def run(provider: str, large: str | None, medium: str | None, small: str | None,
         "ollama-local": Provider.OLLAMA_LOCAL,
         "nvidia": Provider.NVIDIA_NIM,
         "openrouter": Provider.OPENROUTER,
+        "openai-compat": Provider.OPENAI_COMPAT,
         "anthropic": Provider.ANTHROPIC,
+        "anthropic-api": Provider.ANTHROPIC_API,
     }[provider]
 
     provider_config = ProviderConfig.get(provider_enum)
@@ -71,6 +73,12 @@ def run(provider: str, large: str | None, medium: str | None, small: str | None,
 
     # Set model tier env vars
     models = _resolve_models(config, provider_config, profile_name, large, medium, small)
+
+    # Set provider-specific base URL override for openai-compat
+    if provider_enum == Provider.OPENAI_COMPAT:
+        base_url = os.environ.get("OPENAI_COMPAT_BASE_URL", provider_config.base_url)
+        if base_url:
+            env["OPENAI_COMPAT_BASE_URL"] = base_url
 
     if models.get_large():
         env["ANTHROPIC_DEFAULT_OPUS_MODEL"] = models.get_large()
