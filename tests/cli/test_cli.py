@@ -1,8 +1,10 @@
 """Tests for cli/ module."""
 
 import asyncio
+import importlib.util
 import json
 import os
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -593,3 +595,35 @@ class TestCLISessionManager:
         stats = manager.get_stats()
         assert stats["active_sessions"] == 0
         assert stats["pending_sessions"] == 0
+
+
+# --- Proxy Auto-Discovery Tests ---
+
+
+class TestResolveProxyDir:
+    def test_finds_api_package(self):
+        from claude_with.cli import _resolve_proxy_dir
+
+        fake_spec = importlib.util.spec_from_file_location("api", "/fake/site-packages/api/__init__.py")
+        fake_spec.submodule_search_locations = ["/fake/site-packages/api"]
+
+        with patch("claude_with.cli.importlib.util.find_spec", return_value=fake_spec):
+            result = _resolve_proxy_dir()
+        assert result == Path("/fake/site-packages")
+
+    def test_returns_none_when_api_not_found(self):
+        from claude_with.cli import _resolve_proxy_dir
+
+        with patch("claude_with.cli.importlib.util.find_spec", return_value=None):
+            result = _resolve_proxy_dir()
+        assert result is None
+
+    def test_returns_none_when_no_submodule_search_locations(self):
+        from claude_with.cli import _resolve_proxy_dir
+
+        fake_spec = importlib.util.spec_from_file_location("api", "/fake/api/__init__.py")
+        fake_spec.submodule_search_locations = None
+
+        with patch("claude_with.cli.importlib.util.find_spec", return_value=fake_spec):
+            result = _resolve_proxy_dir()
+        assert result is None

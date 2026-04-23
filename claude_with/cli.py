@@ -1,6 +1,7 @@
 """CLI for claude-with - ephemeral switching for Claude Code."""
 
 import atexit
+import importlib.util
 import os
 import socket
 import subprocess
@@ -14,6 +15,18 @@ import click
 from .config import Config, ModelTier
 from .keys import get_api_key
 from .providers import Provider, ProviderConfig
+
+
+def _resolve_proxy_dir() -> Path | None:
+    """Find the directory containing the installed api/ package.
+
+    Returns the parent directory of api/ (typically site-packages),
+    or None if the api package cannot be located.
+    """
+    spec = importlib.util.find_spec("api")
+    if spec and spec.submodule_search_locations:
+        return Path(spec.submodule_search_locations[0]).parent
+    return None
 
 
 def _find_free_port() -> int:
