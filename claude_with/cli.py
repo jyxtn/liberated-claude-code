@@ -47,27 +47,37 @@ def _wait_for_proxy(port: int, timeout: float = 15.0) -> bool:
 
 
 def _start_ephemeral_proxy(
-    proxy_project_path: Path,
+    proxy_dir: Path,
     port: int,
     proxy_env: dict[str, str],
+    mode: str = "installed",
 ) -> subprocess.Popen:
-    proc = subprocess.Popen(
-        [
+    if mode == "dev":
+        cmd = [
             "uv",
             "run",
             "--directory",
-            str(proxy_project_path),
+            str(proxy_dir),
             "uvicorn",
             "server:app",
             "--host",
             "127.0.0.1",
             "--port",
             str(port),
-        ],
-        env=proxy_env,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+        ]
+        cwd = None
+    else:
+        cmd = [
+            "uvicorn",
+            "api.app:app",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            str(port),
+        ]
+        cwd = str(proxy_dir)
+
+    proc = subprocess.Popen(cmd, env=proxy_env, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def _cleanup() -> None:
         if proc.poll() is None:
@@ -197,7 +207,7 @@ def _launch(
             )
             print(f"  Starting proxy on port {port}...")
             _start_ephemeral_proxy(
-                Path(config.proxy_project_path).expanduser(), port, proxy_env
+                Path(config.proxy_project_path).expanduser(), port, proxy_env, mode="dev"
             )
             if not _wait_for_proxy(port):
                 print("✗ Proxy failed to start")

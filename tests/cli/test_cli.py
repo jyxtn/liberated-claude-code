@@ -627,3 +627,58 @@ class TestResolveProxyDir:
         with patch("claude_with.cli.importlib.util.find_spec", return_value=fake_spec):
             result = _resolve_proxy_dir()
         assert result is None
+
+
+class TestStartEphemeralProxy:
+    def test_installed_mode_runs_uvicorn_directly(self):
+        from claude_with.cli import _start_ephemeral_proxy
+
+        with patch("claude_with.cli.subprocess.Popen") as mock_popen:
+            mock_popen.return_value = MagicMock()
+            _start_ephemeral_proxy(
+                Path("/fake/site-packages"),
+                9999,
+                {"MODEL": "test"},
+                mode="installed",
+            )
+        call_args = mock_popen.call_args
+        cmd = call_args[0][0]
+        assert cmd[0] == "uvicorn"
+        assert cmd[1] == "api.app:app"
+        assert "--host" in cmd
+        assert "127.0.0.1" in cmd
+        assert "--port" in cmd
+        assert "9999" in cmd
+
+    def test_dev_mode_runs_uv_run(self):
+        from claude_with.cli import _start_ephemeral_proxy
+
+        with patch("claude_with.cli.subprocess.Popen") as mock_popen:
+            mock_popen.return_value = MagicMock()
+            _start_ephemeral_proxy(
+                Path("/home/user/proj"),
+                9999,
+                {"MODEL": "test"},
+                mode="dev",
+            )
+        call_args = mock_popen.call_args
+        cmd = call_args[0][0]
+        assert cmd[0] == "uv"
+        assert "run" in cmd
+        assert "--directory" in cmd
+        assert "/home/user/proj" in cmd
+        assert "server:app" in cmd
+
+    def test_installed_mode_cwd_set_to_proxy_dir(self):
+        from claude_with.cli import _start_ephemeral_proxy
+
+        with patch("claude_with.cli.subprocess.Popen") as mock_popen:
+            mock_popen.return_value = MagicMock()
+            _start_ephemeral_proxy(
+                Path("/fake/site-packages"),
+                9999,
+                {"MODEL": "test"},
+                mode="installed",
+            )
+        call_args = mock_popen.call_args
+        assert call_args[1].get("cwd") == "/fake/site-packages"
