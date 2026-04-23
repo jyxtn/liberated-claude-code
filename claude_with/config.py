@@ -48,8 +48,6 @@ class Config:
     providers: dict[str, dict[str, Any]] = field(default_factory=dict)
     defaults: dict[str, ModelTier] = field(default_factory=dict)
     profiles: dict[str, Profile] = field(default_factory=dict)
-    proxy_port: int = 8082
-    proxy_host: str = "127.0.0.1"
     proxy_project_path: str | None = None
 
     @classmethod
@@ -100,8 +98,6 @@ class Config:
 
         # Parse proxy settings
         if "proxy" in data:
-            self.proxy_port = data["proxy"].get("port", self.proxy_port)
-            self.proxy_host = data["proxy"].get("host", self.proxy_host)
             if "project_path" in data["proxy"]:
                 self.proxy_project_path = data["proxy"]["project_path"]
 
