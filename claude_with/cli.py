@@ -196,7 +196,7 @@ def _launch(
                 env["OPENAI_COMPAT_BASE_URL"] = openai_compat_base_url
 
         if config.proxy_project_path:
-            # Ephemeral proxy: spin up a fresh proxy process for this session
+            # Dev override: run from source with uv run
             port = _find_free_port()
             proxy_env = _build_proxy_env(
                 os.environ.copy(),
@@ -214,7 +214,25 @@ def _launch(
                 sys.exit(1)
             proxy_url = f"http://127.0.0.1:{port}"
         else:
-            proxy_url = f"http://{config.proxy_host}:{config.proxy_port}"
+            # Auto-discover proxy from installed package
+            proxy_dir = _resolve_proxy_dir()
+            if not proxy_dir:
+                print("✗ Cannot locate proxy server. Install the package or set proxy.project_path in config.")
+                sys.exit(1)
+            port = _find_free_port()
+            proxy_env = _build_proxy_env(
+                os.environ.copy(),
+                provider_config,
+                models,
+                provider_api_key,
+                openai_compat_base_url,
+            )
+            print(f"  Starting proxy on port {port}...")
+            _start_ephemeral_proxy(proxy_dir, port, proxy_env, mode="installed")
+            if not _wait_for_proxy(port):
+                print("✗ Proxy failed to start")
+                sys.exit(1)
+            proxy_url = f"http://127.0.0.1:{port}"
 
         env["ANTHROPIC_BASE_URL"] = proxy_url
         env["ANTHROPIC_API_KEY"] = "freecc"

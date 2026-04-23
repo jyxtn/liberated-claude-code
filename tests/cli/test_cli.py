@@ -682,3 +682,72 @@ class TestStartEphemeralProxy:
             )
         call_args = mock_popen.call_args
         assert call_args[1].get("cwd") == "/fake/site-packages"
+
+
+class TestLaunchProxyDiscovery:
+    def test_no_proxy_path_auto_discovers(self):
+        """When proxy_project_path is not set, _launch should use auto-discovery."""
+        from claude_with.cli import _launch
+        from claude_with.config import Config, ModelTier
+        from claude_with.providers import Provider
+
+        config = Config()
+        config.proxy_project_path = None
+
+        with patch("claude_with.cli._resolve_proxy_dir", return_value=Path("/discovered/site-packages")), \
+             patch("claude_with.cli._find_free_port", return_value=9999), \
+             patch("claude_with.cli._wait_for_proxy", return_value=True), \
+             patch("claude_with.cli._start_ephemeral_proxy") as mock_start, \
+             patch("claude_with.cli._build_proxy_env", return_value={}), \
+             patch("claude_with.cli._resolve_models") as mock_models, \
+             patch("claude_with.cli.Config.load", return_value=config), \
+             patch("claude_with.cli.get_api_key", return_value="testkey"), \
+             patch("claude_with.cli.subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(returncode=0)
+            mock_models.return_value = ModelTier(large="glm5.1", medium="kimi-k2.5", small="step-3.5-flash")
+            with pytest.raises(SystemExit):
+                _launch("ollama", Provider.OLLAMA_CLOUD, None, None, None, None, None, [])
+
+        mock_start.assert_called_once()
+        assert mock_start.call_args[0][0] == Path("/discovered/site-packages")
+        assert mock_start.call_args[1].get("mode") == "installed"
+
+    def test_no_proxy_path_no_api_package_exits(self):
+        """When proxy_project_path is not set and api package not found, exit with error."""
+        from claude_with.cli import _launch
+        from claude_with.config import Config
+        from claude_with.providers import Provider
+
+        config = Config()
+        config.proxy_project_path = None
+
+        with patch("claude_with.cli._resolve_proxy_dir", return_value=None), \
+             patch("claude_with.cli.Config.load", return_value=config), \
+             patch("claude_with.cli.get_api_key", return_value="testkey"), \
+             pytest.raises(SystemExit):
+            _launch("ollama", Provider.OLLAMA_CLOUD, None, None, None, None, None, [])
+
+    def test_proxy_path_override_uses_dev_mode(self):
+        """When proxy_project_path is set, _launch should use dev mode."""
+        from claude_with.cli import _launch
+        from claude_with.config import Config, ModelTier
+        from claude_with.providers import Provider
+
+        config = Config()
+        config.proxy_project_path = "/custom/path"
+
+        with patch("claude_with.cli._find_free_port", return_value=9999), \
+             patch("claude_with.cli._wait_for_proxy", return_value=True), \
+             patch("claude_with.cli._start_ephemeral_proxy") as mock_start, \
+             patch("claude_with.cli._build_proxy_env", return_value={}), \
+             patch("claude_with.cli._resolve_models") as mock_models, \
+             patch("claude_with.cli.Config.load", return_value=config), \
+             patch("claude_with.cli.get_api_key", return_value="testkey"), \
+             patch("claude_with.cli.subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(returncode=0)
+            mock_models.return_value = ModelTier(large="glm5.1", medium="kimi-k2.5", small="step-3.5-flash")
+            with pytest.raises(SystemExit):
+                _launch("ollama", Provider.OLLAMA_CLOUD, None, None, None, None, None, [])
+
+        mock_start.assert_called_once()
+        assert mock_start.call_args[1].get("mode") == "dev"
